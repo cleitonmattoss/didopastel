@@ -1,5 +1,5 @@
 [build]
-  command = "npx next build --webpack"
+  command = "corepack pnpm install --frozen-lockfile && corepack pnpm run build"
 publish = ".next"
 
 [[plugins]]

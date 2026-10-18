@@ -110,12 +110,12 @@ export function ConfirmAction({
   )
 }
 
-export function StatCard({ label, value, hint, icon: Icon }: { label: string; value: string; hint?: string; icon: LucideIcon }) {
+export function StatCard({ label, value, hint, icon }: { label: string; value: string; hint?: string; icon: React.ReactNode }) {
   return (
     <div className="rounded-xl border bg-white p-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{label}</p>
-        <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
+        {icon}
       </div>
       <p className="mt-2 text-2xl font-semibold tabular-nums">{value}</p>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}

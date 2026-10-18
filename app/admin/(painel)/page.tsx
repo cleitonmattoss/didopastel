@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { AlertTriangle, Banknote, ChefHat, Receipt, UtensilsCrossed } from 'lucide-react'
+import { TriangleAlert as AlertTriangle, Banknote, ChefHat, Receipt, UtensilsCrossed } from 'lucide-react'
 import { Panel, PageHeader, StatCard, StatusPill } from '@/components/admin/admin-ui'
 import { SalesBars } from '@/components/admin/sales-bars'
 import { DemoNotice } from '@/components/demo-notice'
@@ -23,10 +23,10 @@ export default function DashboardPage() {
       <DemoNotice className="mb-6">Indicadores calculados a partir de pedidos fictícios.</DemoNotice>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Faturamento do dia" value={formatBRL(revenue)} hint="Sem pedidos cancelados" icon={Banknote} />
-        <StatCard label="Pedidos" value={String(orders.length)} hint={`Ticket médio ${formatBRL(valid.length ? Math.round(revenue / valid.length) : 0)}`} icon={Receipt} />
-        <StatCard label="Na cozinha" value={String(inKitchen)} hint="Recebidos + em preparo" icon={ChefHat} />
-        <StatCard label="Mesas ocupadas" value={`${busyTables}/${tables.length}`} icon={UtensilsCrossed} />
+        <StatCard label="Faturamento do dia" value={formatBRL(revenue)} hint="Sem pedidos cancelados" icon={<Banknote className="size-4 text-muted-foreground" aria-hidden="true" />} />
+        <StatCard label="Pedidos" value={String(orders.length)} hint={`Ticket médio ${formatBRL(valid.length ? Math.round(revenue / valid.length) : 0)}`} icon={<Receipt className="size-4 text-muted-foreground" aria-hidden="true" />} />
+        <StatCard label="Na cozinha" value={String(inKitchen)} hint="Recebidos + em preparo" icon={<ChefHat className="size-4 text-muted-foreground" aria-hidden="true" />} />
+        <StatCard label="Mesas ocupadas" value={`${busyTables}/${tables.length}`} icon={<UtensilsCrossed className="size-4 text-muted-foreground" aria-hidden="true" />} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">

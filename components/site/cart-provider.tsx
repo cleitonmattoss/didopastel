@@ -1,7 +1,8 @@
 'use client'
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
-import type { Order } from '@/lib/types'
+import type { Delivery, Order } from '@/lib/types'
+import { useDemoOperations } from '@/components/demo-operations-provider'
 
 export const MAX_ITEM_QUANTITY = 20
 
@@ -43,7 +44,8 @@ function clampQuantity(quantity: number) {
  */
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
-  const [demoOrders, setDemoOrders] = useState<Record<string, Order>>({})
+  const [demoOrderNumbers, setDemoOrderNumbers] = useState<string[]>([])
+  const { orders, upsertOrder, upsertDelivery } = useDemoOperations()
 
   const addItem = useCallback((item: Omit<CartItem, 'id'>) => {
     setItems((current) => {
@@ -73,9 +75,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clear = useCallback(() => setItems([]), [])
 
+  const demoOrders = useMemo(() => Object.fromEntries(
+    demoOrderNumbers.flatMap((number) => {
+      const order = orders?.find((item) => item.number === number)
+      return order ? [[number, order]] : []
+    }),
+  ) as Record<string, Order>, [demoOrderNumbers, orders])
+
   const saveDemoOrder = useCallback((order: Order) => {
-    setDemoOrders((current) => ({ ...current, [order.number]: order }))
-  }, [])
+    upsertOrder(order)
+    if (order.type === 'entrega') {
+      const delivery: Delivery = {
+        id: `demo-${order.number}`,
+        orderNumber: order.number,
+        customerName: order.customerName,
+        neighborhood: '',
+        courierId: null,
+        status: 'aguardando_entregador',
+        updatedAt: order.createdAt,
+      }
+      upsertDelivery(delivery)
+    }
+    setDemoOrderNumbers((current) => current.includes(order.number) ? current : [...current, order.number])
+  }, [upsertOrder, upsertDelivery])
 
   const value = useMemo<CartContextValue>(
     () => ({

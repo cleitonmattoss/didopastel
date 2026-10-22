@@ -6,7 +6,7 @@ export function SiteFooter() {
     <footer className="mt-16 bg-brand-black text-white">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-3">
         <div className="flex flex-col gap-3">
-          <Logo tone="dark" />
+          <Logo className="block h-auto w-[200px] max-w-full" tone="dark" />
           <p className="text-sm text-white/70">Pastelaria em Santaluz, Bahia.</p>
         </div>
         <nav aria-label="Rodapé">

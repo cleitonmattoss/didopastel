@@ -75,6 +75,7 @@ export type OrderStatus =
   | 'em_preparo'
   | 'pronto'
   | 'saiu_para_entrega'
+  | 'falha_entrega'
   | 'concluido'
   | 'cancelado'
 
@@ -108,7 +109,7 @@ export interface Order {
   cancelReason?: string
 }
 
-export type DeliveryStatus = 'aguardando_entregador' | 'atribuida' | 'em_rota' | 'entregue' | 'falhou'
+export type DeliveryStatus = 'aguardando_entregador' | 'atribuida' | 'em_rota' | 'entregue' | 'falhou' | 'cancelada'
 
 export interface Courier {
   id: string

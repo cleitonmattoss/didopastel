@@ -19,6 +19,7 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   em_preparo: 'Em preparo',
   pronto: 'Pronto',
   saiu_para_entrega: 'Saiu para entrega',
+  falha_entrega: 'Falha na entrega',
   concluido: 'Concluído',
   cancelado: 'Cancelado',
 }
@@ -45,6 +46,7 @@ export const DELIVERY_STATUS_LABEL: Record<DeliveryStatus, string> = {
   em_rota: 'Em rota',
   entregue: 'Entregue',
   falhou: 'Falha na entrega',
+  cancelada: 'Cancelada',
 }
 
 export const TABLE_STATUS_LABEL: Record<TableStatus, string> = {

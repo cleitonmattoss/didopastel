@@ -20,6 +20,7 @@ export const ORDER_STATUS_TONE: Record<OrderStatus, Tone> = {
   em_preparo: 'warning',
   pronto: 'success',
   saiu_para_entrega: 'info',
+  falha_entrega: 'warning',
   concluido: 'neutral',
   cancelado: 'danger',
 }
@@ -39,6 +40,7 @@ export const DELIVERY_STATUS_TONE: Record<DeliveryStatus, Tone> = {
   em_rota: 'info',
   entregue: 'success',
   falhou: 'danger',
+  cancelada: 'neutral',
 }
 
 export const TABLE_STATUS_TONE: Record<TableStatus, Tone> = {

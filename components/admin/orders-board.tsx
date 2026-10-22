@@ -1,16 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowRight, Bike, ChefHat, Printer, Store, UtensilsCrossed, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ORDER_STATUS_TONE, PAYMENT_STATUS_TONE, selectClass } from '@/lib/admin'
 import { formatBRL, formatTime } from '@/lib/format'
 import { ORDER_STATUS_LABEL, ORDER_TYPE_LABEL, PAYMENT_METHOD_LABEL, PAYMENT_STATUS_LABEL } from '@/lib/labels'
-import type { Order, OrderStatus, OrderType } from '@/lib/types'
+import type { Delivery, Order, OrderStatus, OrderType } from '@/lib/types'
+import { useDemoOperations } from '@/components/demo-operations-provider'
 import { ConfirmAction, EmptyState, PageHeader, StatusPill, inputClass, useDemoFlash } from './admin-ui'
 
-const COLUMNS: OrderStatus[] = ['recebido', 'em_preparo', 'pronto', 'saiu_para_entrega']
+const COLUMNS: OrderStatus[] = ['recebido', 'em_preparo', 'pronto', 'saiu_para_entrega', 'falha_entrega']
 const TYPE_ICON = { entrega: Bike, retirada: Store, local: UtensilsCrossed } as const
 
 function nextStatus(order: Order): OrderStatus | null {
@@ -23,30 +24,38 @@ function nextStatus(order: Order): OrderStatus | null {
   }
 }
 
-export function OrdersBoard({ initialOrders }: { initialOrders: Order[] }) {
-  const [orders, setOrders] = useState(initialOrders)
+export function OrdersBoard({ initialOrders, initialDeliveries }: { initialOrders: Order[]; initialDeliveries: Delivery[] }) {
+  const { orders: sharedOrders, deliveries: sharedDeliveries, initialize, updateOrders, updateDeliveries } = useDemoOperations()
+  const orders = sharedOrders ?? initialOrders
+  const deliveries = sharedDeliveries ?? initialDeliveries
   const [typeFilter, setTypeFilter] = useState<OrderType | 'todos'>('todos')
   const [view, setView] = useState<'preparo' | 'historico'>('preparo')
   const { flash, node } = useDemoFlash()
 
+  useEffect(() => initialize(initialOrders, initialDeliveries), [initialize, initialOrders, initialDeliveries])
+
   const filtered = orders.filter((o) => typeFilter === 'todos' || o.type === typeFilter)
 
   function advance(order: Order) {
+    if (order.status === 'cancelado' || deliveries.some((delivery) => delivery.orderNumber === order.number && delivery.status === 'cancelada')) return
     const next = nextStatus(order)
     if (!next) return
-    setOrders((prev) => prev.map((o) => (o.number === order.number ? { ...o, status: next } : o)))
+    updateOrders((prev) => prev.map((o) => (o.number === order.number ? { ...o, status: next } : o)))
     flash(`Pedido #${order.number}: ${ORDER_STATUS_LABEL[next]}.`)
   }
 
   function cancel(order: Order, reason: string) {
     // Regra: se o pagamento online já foi aprovado, o cancelamento gera reembolso pendente e o estoque reservado é liberado.
-    setOrders((prev) =>
+    updateOrders((prev) =>
       prev.map((o) =>
         o.number === order.number
           ? { ...o, status: 'cancelado', cancelReason: reason, paymentStatus: o.paymentStatus === 'aprovado' ? 'reembolso_pendente' : o.paymentStatus }
           : o,
       ),
     )
+    updateDeliveries((prev) => prev.map((delivery) => delivery.orderNumber === order.number
+      ? { ...delivery, status: 'cancelada', updatedAt: new Date().toISOString() }
+      : delivery))
     flash(`Pedido #${order.number} cancelado. Reserva de estoque liberada.`)
   }
 
@@ -83,7 +92,7 @@ export function OrdersBoard({ initialOrders }: { initialOrders: Order[] }) {
       />
 
       {view === 'preparo' ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           {COLUMNS.map((status) => {
             const column = filtered.filter((o) => o.status === status)
             return (

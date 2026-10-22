@@ -9,6 +9,7 @@ import { ORDER_STATUS_LABEL, ORDER_TYPE_LABEL, PAYMENT_METHOD_LABEL, PAYMENT_STA
 import type { Order, OrderStatus, OrderType } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { useCart } from './cart-provider'
+import { useDemoOrderStatus } from '@/components/demo-operations-provider'
 
 function stepsFor(type: OrderType): OrderStatus[] {
   return type === 'entrega'
@@ -34,6 +35,7 @@ export function OrderTracker({ initialNumber }: { initialNumber: string }) {
   const { demoOrders } = useCart()
   const localOrder = initialNumber ? demoOrders[initialNumber] : undefined
   const [result, setResult] = useState<PublicOrderView | null>(localOrder ? fromLocal(localOrder) : null)
+  const sharedStatus = useDemoOrderStatus(result?.number)
   const [notFound, setNotFound] = useState(false)
   const [pending, startTransition] = useTransition()
 
@@ -84,7 +86,7 @@ export function OrderTracker({ initialNumber }: { initialNumber: string }) {
         </p>
       )}
 
-      {result && <OrderDetails order={result} />}
+      {result && <OrderDetails order={sharedStatus ? { ...result, ...sharedStatus } : result} />}
     </div>
   )
 }
@@ -93,6 +95,7 @@ function OrderDetails({ order }: { order: PublicOrderView }) {
   const steps = stepsFor(order.type)
   const currentIndex = steps.indexOf(order.status)
   const cancelled = order.status === 'cancelado'
+  const deliveryFailed = order.status === 'falha_entrega'
 
   return (
     <section aria-labelledby="order-title" className="rounded-2xl border-2 border-brand-black bg-card p-5 shadow-[4px_4px_0_0_var(--brand-black)]">
@@ -109,6 +112,10 @@ function OrderDetails({ order }: { order: PublicOrderView }) {
       {cancelled ? (
         <p className="flex items-center gap-2 rounded-xl bg-destructive/10 p-4 font-semibold text-destructive">
           <XCircle className="size-5" aria-hidden="true" /> Este pedido foi cancelado.
+        </p>
+      ) : deliveryFailed ? (
+        <p role="status" className="mb-6 rounded-xl bg-amber-50 p-4 font-semibold text-amber-900">
+          Falha na entrega registrada. O pedido ainda não foi concluído.
         </p>
       ) : (
         <ol className="mb-6 flex flex-col gap-3 sm:flex-row sm:gap-0">

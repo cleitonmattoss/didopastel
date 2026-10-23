@@ -129,14 +129,6 @@ export function DeliveriesBoard({
       : `Pedido #${delivery.orderNumber} voltou para a fila de atribuição.`)
   }
 
-  function reassign(delivery: Delivery) {
-    if (delivery.status !== 'falhou' || orderByNumber.get(delivery.orderNumber)?.status !== 'falha_entrega') return
-    updateDeliveries((current) => current.map((row) => row.id === delivery.id
-      ? { ...row, courierId: null, status: 'aguardando_entregador', updatedAt: new Date().toISOString() }
-      : row))
-    flash(`Pedido #${delivery.orderNumber} voltou para a fila de atribuição.`)
-  }
-
   function cancel(delivery: Delivery) {
     if (delivery.status !== 'falhou' || orderByNumber.get(delivery.orderNumber)?.status !== 'falha_entrega') return
     updateDeliveries((current) => current.map((row) => row.id === delivery.id
@@ -228,7 +220,6 @@ export function DeliveriesBoard({
                     onComplete={() => complete(delivery)}
                     onFail={() => fail(delivery)}
                     onRetry={() => retry(delivery)}
-                    onReassign={() => reassign(delivery)}
                     onCancel={() => cancel(delivery)}
                     onMove={(direction) => moveDelivery(delivery, direction)}
                     canMoveUp={!hasActiveFilters && activeDeliveries[0]?.id !== delivery.id}
@@ -266,7 +257,6 @@ export function DeliveriesBoard({
                         onComplete={() => complete(delivery)}
                         onFail={() => fail(delivery)}
                         onRetry={() => retry(delivery)}
-                        onReassign={() => reassign(delivery)}
                         onCancel={() => cancel(delivery)}
                         onMove={(direction) => moveDelivery(delivery, direction)}
                         canMoveUp={!hasActiveFilters && activeDeliveries[0]?.id !== delivery.id}
@@ -294,7 +284,6 @@ type DeliveryActionsProps = {
   onComplete: () => void
   onFail: () => void
   onRetry: () => void
-  onReassign: () => void
   onCancel: () => void
   onMove: (direction: -1 | 1) => void
   canMoveUp: boolean
@@ -322,7 +311,7 @@ function CourierSelect({ delivery, couriers, onChange }: { delivery: Delivery; c
   )
 }
 
-function DeliveryActionButtons({ delivery, order, onDispatch, onComplete, onFail, onRetry, onReassign, onCancel, onMove, canMoveUp, canMoveDown }: DeliveryActionsProps) {
+function DeliveryActionButtons({ delivery, order, onDispatch, onComplete, onFail, onRetry, onCancel, onMove, canMoveUp, canMoveDown }: DeliveryActionsProps) {
   const orderCanDispatch = order?.status === 'pronto' || order?.status === 'saiu_para_entrega' || order?.status === 'falha_entrega'
   const canDispatch = delivery.status === 'atribuida' && !!delivery.courierId && orderCanDispatch
   const needsReadyOrder = delivery.status === 'atribuida' && !orderCanDispatch
@@ -347,7 +336,6 @@ function DeliveryActionButtons({ delivery, order, onDispatch, onComplete, onFail
       ) : delivery.status === 'falhou' ? (
         <>
           <Button type="button" size="sm" onClick={onRetry}><ArrowRight aria-hidden="true" /> Tentar novamente</Button>
-          <Button type="button" size="sm" variant="outline" onClick={onReassign}>Reatribuir</Button>
           <ConfirmAction
             trigger={<Button type="button" size="sm" variant="destructive">Cancelar</Button>}
             title={`Cancelar pedido #${delivery.orderNumber}?`}

@@ -44,9 +44,9 @@ export function CartView({ deliveryFeeCents }: { deliveryFeeCents: number }) {
                     <p key={s} className="text-sm text-muted-foreground">{s}</p>
                   ))}
                   {item.notes && <p className="text-sm text-muted-foreground italic">Obs.: {item.notes}</p>}
-                  {item.slug.startsWith('pastel') && (
+                  {item.saladIncluded && (
                     <p className="inline-flex items-center gap-1 text-xs font-semibold text-success">
-                      <Leaf className="size-3" aria-hidden="true" /> Salada inclusa
+                      <Leaf className="size-3" aria-hidden="true" /> Com salada
                     </p>
                   )}
                 </div>

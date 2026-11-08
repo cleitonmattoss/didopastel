@@ -46,6 +46,7 @@ export default async function PrintOrderPage({ params }: { params: Promise<{ num
                 <span>{formatBRL(i.unitPriceCents * i.quantity)}</span>
               </div>
               {i.flavorName && <p className="pl-3">Sabor: {i.flavorName}</p>}
+              {i.saladIncluded && <p className="pl-3">Com salada</p>}
               {i.comboSelections?.map((s) => <p key={s} className="pl-3">{s}</p>)}
               {i.notes && <p className="pl-3 font-bold">OBS: {i.notes}</p>}
             </li>

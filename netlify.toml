@@ -1,6 +1,0 @@
-[build]
-  command = "corepack pnpm install --frozen-lockfile && corepack pnpm run build"
-publish = ".next"
-
-[[plugins]]
-package = "@netlify/plugin-nextjs"

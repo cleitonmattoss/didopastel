@@ -1,21 +1,42 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { hasSupabaseConfig } from '@/lib/supabase/env'
+import { refreshSupabaseSession } from '@/lib/supabase/proxy'
 
-/**
- * Bloqueia o painel sem sessão.
- * PONTO DE INTEGRAÇÃO: hoje verifica apenas o cookie de demonstração. Com Supabase Auth, trocar por
- * validação da sessão + papel do funcionário (ex.: tabela `staff` com role admin/atendente/cozinha).
- */
-export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  if (pathname.startsWith('/admin') && pathname !== '/admin/entrar') {
-    if (request.cookies.get('admin_demo_session')?.value !== '1') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/admin/entrar'
-      url.search = ''
-      return NextResponse.redirect(url)
+export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname === '/admin/entrar') {
+    return NextResponse.next({ request })
+  }
+
+  if (!hasSupabaseConfig()) {
+    return redirectToLogin(request)
+  }
+
+  try {
+    const { response, authenticated } = await refreshSupabaseSession(request)
+    if (authenticated) return response
+    return redirectToLogin(request, response)
+  } catch {
+    return redirectToLogin(request)
+  }
+}
+
+function redirectToLogin(request: NextRequest, sessionResponse?: NextResponse) {
+  const url = request.nextUrl.clone()
+  url.pathname = '/admin/entrar'
+  url.search = ''
+  const response = NextResponse.redirect(url)
+
+  if (sessionResponse) {
+    for (const cookie of sessionResponse.cookies.getAll()) {
+      response.cookies.set(cookie)
+    }
+    for (const header of ['cache-control', 'expires', 'pragma']) {
+      const value = sessionResponse.headers.get(header)
+      if (value) response.headers.set(header, value)
     }
   }
-  return NextResponse.next()
+
+  return response
 }
 
 export const config = { matcher: ['/admin/:path*'] }

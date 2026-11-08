@@ -34,6 +34,7 @@ export const products: Product[] = [
     priceCents: 800,
     image: '/images/pastel.png',
     includesSalad: true,
+    saladOptionEnabled: true,
     popular: true,
     active: true,
     flavors: [
@@ -53,6 +54,7 @@ export const products: Product[] = [
     priceCents: 1100,
     image: '/images/pastel.png',
     includesSalad: true,
+    saladOptionEnabled: true,
     popular: true,
     active: true,
     flavors: [
@@ -263,6 +265,8 @@ const baseOrders: Order[] = [
     customerName: 'Cliente Demo B',
     customerPhone: '(00) 00000-0002',
     tableNumber: 3,
+    tableSessionId: 'mesa-3-atendimento-demo',
+    tableOrderMode: 'comanda',
     items: [
       { productId: 'cb-lanche', productName: 'Combo Lanche', unitPriceCents: 1700, quantity: 2, comboSelections: ['Pastel tradicional: Queijo', 'Refrigerante lata: Cola'] },
     ],
@@ -350,11 +354,9 @@ export const deliveries: Delivery[] = [
 
 export const tables: TableSession[] = [
   { tableNumber: 1, status: 'livre', items: [] },
-  { tableNumber: 2, status: 'ocupada', openedAt: '2026-10-18T18:00:00-03:00', items: [{ productId: 'p-tradicional', productName: 'Pastel tradicional', unitPriceCents: 800, quantity: 2, flavorName: 'Carne' }] },
-  { tableNumber: 3, status: 'ocupada', openedAt: '2026-10-18T18:10:00-03:00', items: [{ productId: 'cb-lanche', productName: 'Combo Lanche', unitPriceCents: 1700, quantity: 2 }] },
-  { tableNumber: 4, status: 'aguardando_conta', openedAt: '2026-10-18T17:30:00-03:00', items: [{ productId: 'c-frango', productName: 'Coxinha de frango', unitPriceCents: 600, quantity: 3 }, { productId: 'r-lata', productName: 'Refrigerante lata 350 ml', unitPriceCents: 500, quantity: 3, flavorName: 'Guaraná' }] },
-  { tableNumber: 5, status: 'livre', items: [] },
-  { tableNumber: 6, status: 'livre', items: [] },
+  { tableNumber: 2, status: 'livre', items: [] },
+  { tableNumber: 3, status: 'ocupada', sessionId: 'mesa-3-atendimento-demo', orderMode: 'comanda', orderNumbers: ['1041'], openedAt: '2026-10-18T18:10:00-03:00', items: [] },
+  { tableNumber: 4, status: 'ocupada', sessionId: 'mesa-4-atendimento-demo', orderMode: 'comanda', orderNumbers: [], openedAt: '2026-10-18T18:20:00-03:00', items: [] },
 ]
 
 export const customers: Customer[] = [

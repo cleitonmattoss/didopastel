@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { ExternalLink, LogOut, Menu } from 'lucide-react'
-import { leaveDemoAdmin } from '@/app/actions/admin-session'
+import { signOut } from '@/app/actions/admin-session'
 import { DemoBadge } from '@/components/demo-notice'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { AdminNav } from './admin-nav'
@@ -23,7 +23,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <Link href="/" target="_blank" className="flex h-9 items-center gap-2 rounded-lg px-3 text-sm text-zinc-300 hover:bg-white/10">
           <ExternalLink className="size-4" aria-hidden="true" /> Ver site
         </Link>
-        <form action={leaveDemoAdmin}>
+        <form action={signOut}>
           <button type="submit" className="flex h-9 w-full items-center gap-2 rounded-lg px-3 text-sm text-zinc-300 hover:bg-white/10">
             <LogOut className="size-4" aria-hidden="true" /> Sair
           </button>

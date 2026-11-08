@@ -25,7 +25,7 @@ function fromLocal(order: Order): PublicOrderView {
     status: order.status,
     paymentMethod: order.paymentMethod,
     paymentStatus: order.paymentStatus,
-    items: order.items.map(({ productName, quantity, flavorName, unitPriceCents }) => ({ productName, quantity, flavorName, unitPriceCents })),
+    items: order.items.map(({ productName, quantity, flavorName, saladIncluded, unitPriceCents }) => ({ productName, quantity, flavorName, saladIncluded, unitPriceCents })),
     totalCents: order.totalCents,
     firstName: order.customerName.split(' ')[0],
   }
@@ -136,7 +136,7 @@ function OrderDetails({ order }: { order: PublicOrderView }) {
       <ul className="flex flex-col gap-1 border-t pt-4 text-sm">
         {order.items.map((i, idx) => (
           <li key={idx} className="flex justify-between gap-3">
-            <span>{i.quantity}× {i.productName}{i.flavorName && ` · ${i.flavorName}`}</span>
+            <span>{i.quantity}× {i.productName}{i.flavorName && ` · ${i.flavorName}`}{i.saladIncluded && ' · com salada'}</span>
             <span>{formatBRL(i.unitPriceCents * i.quantity)}</span>
           </li>
         ))}

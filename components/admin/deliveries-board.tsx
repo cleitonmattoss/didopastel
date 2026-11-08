@@ -368,6 +368,7 @@ function OrderDetails({ order }: { order?: Order }) {
         {order.items.map((item, index) => (
           <li key={`${item.productId}-${index}`}>
             {item.quantity}× {item.productName}{item.flavorName && <span className="text-muted-foreground"> · {item.flavorName}</span>}
+            {item.saladIncluded && <span className="text-muted-foreground"> · com salada</span>}
             {item.comboSelections?.map((selection) => <span key={selection} className="block pl-5 text-xs text-muted-foreground">{selection}</span>)}
             {item.notes && <span className="block pl-5 text-xs text-amber-800">Obs.: {item.notes}</span>}
           </li>

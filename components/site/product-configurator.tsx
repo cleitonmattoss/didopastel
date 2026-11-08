@@ -28,7 +28,7 @@ export function ProductConfigurator({
   flavors,
   comboSlots,
 }: {
-  product: { id: string; slug: string; name: string; image: string; priceCents: number }
+  product: { id: string; slug: string; name: string; image: string; priceCents: number; saladOptionEnabled?: boolean }
   flavors: FlavorOption[]
   comboSlots: ComboSlot[]
 }) {
@@ -41,6 +41,7 @@ export function ProductConfigurator({
   )
   const [quantity, setQuantity] = useState(1)
   const [notes, setNotes] = useState('')
+  const [saladIncluded, setSaladIncluded] = useState(false)
   const [added, setAdded] = useState(false)
 
   const flavorMissing = flavors.length > 0 && !flavorId
@@ -63,12 +64,14 @@ export function ProductConfigurator({
       quantity,
       flavorId: flavor?.id,
       flavorName: flavor?.name,
+      saladIncluded: product.saladOptionEnabled ? saladIncluded : undefined,
       comboSelections: comboSelections.length ? comboSelections : undefined,
       notes: notes.trim() || undefined,
     })
     setAdded(true)
     setQuantity(1)
     setNotes('')
+    setSaladIncluded(false)
   }
 
   return (
@@ -148,6 +151,21 @@ export function ProductConfigurator({
               </p>
             ),
           )}
+        </fieldset>
+      )}
+
+      {product.saladOptionEnabled && (
+        <fieldset>
+          <legend className="mb-3 font-display text-xl">Quer Salada?</legend>
+          <div className="flex gap-3">
+            {([{ value: false, label: 'Não' }, { value: true, label: 'Sim' }] as const).map((option) => (
+              <label key={option.label} className="flex cursor-pointer items-center gap-2 rounded-xl border-2 px-4 py-3 font-medium has-checked:border-brand-red has-checked:bg-accent">
+                <input type="radio" name="salad" checked={saladIncluded === option.value} onChange={() => setSaladIncluded(option.value)} className="size-4 accent-brand-red" />
+                {option.label}
+              </label>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">Sem custo adicional.</p>
         </fieldset>
       )}
 

@@ -16,6 +16,7 @@ export interface CartItem {
   quantity: number
   flavorId?: string
   flavorName?: string
+  saladIncluded?: boolean
   comboSelections?: string[]
   notes?: string
 }
@@ -53,6 +54,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         (i) =>
           i.productId === item.productId &&
           i.flavorId === item.flavorId &&
+          i.saladIncluded === item.saladIncluded &&
           (i.notes ?? '') === (item.notes ?? '') &&
           JSON.stringify(i.comboSelections ?? []) === JSON.stringify(item.comboSelections ?? []),
       )

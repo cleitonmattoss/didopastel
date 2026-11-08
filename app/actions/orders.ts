@@ -25,6 +25,7 @@ export interface PlaceOrderInput {
   items: {
     productId: string
     flavorId?: string
+    saladIncluded?: boolean
     comboSelections?: string[]
     notes?: string
     quantity: number
@@ -90,6 +91,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       unitPriceCents: product.priceCents,
       quantity: line.quantity,
       flavorName,
+      saladIncluded: product.saladOptionEnabled ? line.saladIncluded === true : undefined,
       comboSelections: line.comboSelections?.slice(0, 10).map((s) => clean(s, 80)),
       notes: clean(line.notes, 140) || undefined,
     })
@@ -135,7 +137,7 @@ export interface PublicOrderView {
   status: OrderStatus
   paymentMethod: PaymentMethod
   paymentStatus: PaymentStatus
-  items: { productName: string; quantity: number; flavorName?: string; unitPriceCents: number }[]
+  items: { productName: string; quantity: number; flavorName?: string; saladIncluded?: boolean; unitPriceCents: number }[]
   totalCents: number
   firstName: string
 }
@@ -161,6 +163,7 @@ function toPublicView(order: Order): PublicOrderView {
       productName: i.productName,
       quantity: i.quantity,
       flavorName: i.flavorName,
+      saladIncluded: i.saladIncluded,
       unitPriceCents: i.unitPriceCents,
     })),
     totalCents: order.totalCents,

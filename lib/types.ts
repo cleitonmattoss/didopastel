@@ -35,6 +35,8 @@ export interface Product {
   flavors: Flavor[]
   /** Exibe a informação de que a salada acompanha o pastel, sem cobrança extra. */
   includesSalad?: boolean
+  /** Permite ao cliente escolher salada no pedido; sem custo adicional nesta demonstração. */
+  saladOptionEnabled?: boolean
   popular?: boolean
   active: boolean
   /** Presente apenas em combos: referência aos produtos componentes (o estoque fica nos componentes). */
@@ -86,6 +88,7 @@ export interface OrderItem {
   unitPriceCents: number
   quantity: number
   flavorName?: string
+  saladIncluded?: boolean
   comboSelections?: string[]
   notes?: string
 }
@@ -101,6 +104,10 @@ export interface Order {
   customerPhone: string
   address?: string
   tableNumber?: number
+  /** Identifica o atendimento demonstrativo da mesa ao qual este pedido pertence. */
+  tableSessionId?: string
+  /** Distingue um pedido da comanda acumulada ou um pedido independente na mesma mesa. */
+  tableOrderMode?: 'comanda' | 'independente'
   items: OrderItem[]
   subtotalCents: number
   deliveryFeeCents: number
@@ -132,7 +139,11 @@ export type TableStatus = 'livre' | 'ocupada' | 'aguardando_conta'
 export interface TableSession {
   tableNumber: number
   status: TableStatus
+  /** Ausente quando a mesa está livre; muda a cada novo atendimento. */
+  sessionId?: string
   openedAt?: string
+  orderNumbers?: string[]
+  orderMode?: 'comanda' | 'independente'
   items: OrderItem[]
 }
 

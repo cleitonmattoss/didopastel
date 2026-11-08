@@ -79,6 +79,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 name: product.name,
                 image: product.image,
                 priceCents: product.priceCents,
+                saladOptionEnabled: product.saladOptionEnabled,
               }}
               flavors={flavors}
               comboSlots={comboSlots}

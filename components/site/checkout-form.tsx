@@ -53,6 +53,7 @@ export function CheckoutForm({ deliveryFeeCents, acceptsDelivery }: { deliveryFe
         items: items.map((i) => ({
           productId: i.productId,
           flavorId: i.flavorId,
+          saladIncluded: i.saladIncluded,
           comboSelections: i.comboSelections,
           notes: i.notes,
           quantity: i.quantity,
@@ -176,6 +177,7 @@ export function CheckoutForm({ deliveryFeeCents, acceptsDelivery }: { deliveryFe
               <span>
                 {i.quantity}× {i.name}
                 {i.flavorName && <span className="text-muted-foreground"> · {i.flavorName}</span>}
+                {i.saladIncluded && <span className="text-muted-foreground"> · com salada</span>}
               </span>
               <span className="shrink-0">{formatBRL(i.unitPriceCents * i.quantity)}</span>
             </li>

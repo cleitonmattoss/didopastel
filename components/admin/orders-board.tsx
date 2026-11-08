@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { ArrowRight, Bike, ChefHat, Printer, Store, UtensilsCrossed, X } from 'lucide-react'
+import { ArrowRight, Bike, ChefHat, Check, Printer, Store, UtensilsCrossed, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ORDER_STATUS_TONE, PAYMENT_STATUS_TONE, selectClass } from '@/lib/admin'
 import { formatBRL, formatTime } from '@/lib/format'
@@ -11,8 +11,15 @@ import type { Delivery, Order, OrderStatus, OrderType } from '@/lib/types'
 import { useDemoOperations } from '@/components/demo-operations-provider'
 import { ConfirmAction, EmptyState, PageHeader, StatusPill, inputClass, useDemoFlash } from './admin-ui'
 
-const COLUMNS: OrderStatus[] = ['recebido', 'em_preparo', 'pronto', 'saiu_para_entrega', 'falha_entrega']
+const COLUMNS: OrderStatus[] = ['recebido', 'em_preparo', 'pronto']
 const TYPE_ICON = { entrega: Bike, retirada: Store, local: UtensilsCrossed } as const
+
+function isManualPickupPaymentDue(order: Order): boolean {
+  return order.status === 'pronto' &&
+    order.type === 'retirada' &&
+    (order.paymentMethod === 'dinheiro_presencial' || order.paymentMethod === 'cartao_presencial') &&
+    order.paymentStatus === 'presencial'
+}
 
 function nextStatus(order: Order): OrderStatus | null {
   switch (order.status) {
@@ -34,14 +41,24 @@ export function OrdersBoard({ initialOrders, initialDeliveries }: { initialOrder
 
   useEffect(() => initialize(initialOrders, initialDeliveries), [initialize, initialOrders, initialDeliveries])
 
-  const filtered = orders.filter((o) => typeFilter === 'todos' || o.type === typeFilter)
+  const visibleOrders = orders.filter((order) => order.status !== 'saiu_para_entrega' && order.status !== 'falha_entrega')
+  const filtered = visibleOrders.filter((o) => typeFilter === 'todos' || o.type === typeFilter)
 
   function advance(order: Order) {
     if (order.status === 'cancelado' || deliveries.some((delivery) => delivery.orderNumber === order.number && delivery.status === 'cancelada')) return
+    if (isManualPickupPaymentDue(order)) return
     const next = nextStatus(order)
     if (!next) return
     updateOrders((prev) => prev.map((o) => (o.number === order.number ? { ...o, status: next } : o)))
     flash(`Pedido #${order.number}: ${ORDER_STATUS_LABEL[next]}.`)
+  }
+
+  function confirmManualPayment(order: Order) {
+    if (!isManualPickupPaymentDue(order)) return
+    updateOrders((prev) => prev.map((current) => current.number === order.number
+      ? { ...current, paymentStatus: 'aprovado' }
+      : current))
+    flash(`Pagamento do pedido #${order.number} confirmado manualmente.`)
   }
 
   function cancel(order: Order, reason: string) {
@@ -92,9 +109,18 @@ export function OrdersBoard({ initialOrders, initialDeliveries }: { initialOrder
       />
 
       {view === 'preparo' ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {COLUMNS.map((status) => {
-            const column = filtered.filter((o) => o.status === status)
+            const column = filtered
+              .filter((order) => status === 'pronto'
+                ? order.status === 'pronto' || order.status === 'concluido'
+                : order.status === status && !(status === 'recebido' &&
+                  (order.paymentMethod === 'pix' || order.paymentMethod === 'cartao_online') &&
+                  order.paymentStatus === 'pendente'))
+              .sort((a, b) => status === 'pronto'
+                ? Number(a.status === 'concluido') - Number(b.status === 'concluido') ||
+                  (a.status === 'concluido' ? 0 : Date.parse(a.createdAt) - Date.parse(b.createdAt))
+                : 0)
             return (
               <section key={status} aria-labelledby={`col-${status}`} className="flex flex-col rounded-xl border bg-zinc-100/70">
                 <h2 id={`col-${status}`} className="flex items-center justify-between px-3 py-2.5 text-sm font-semibold">
@@ -105,7 +131,7 @@ export function OrdersBoard({ initialOrders, initialDeliveries }: { initialOrder
                   {column.length === 0 ? (
                     <EmptyState title="Nenhum pedido" icon={ChefHat} />
                   ) : (
-                    column.map((o) => <OrderCard key={o.number} order={o} onAdvance={advance} onCancel={cancel} />)
+                    column.map((o) => <OrderCard key={o.number} order={o} onAdvance={advance} onConfirmManualPayment={confirmManualPayment} onCancel={cancel} />)
                   )}
                 </div>
               </section>
@@ -163,9 +189,10 @@ export function OrdersBoard({ initialOrders, initialDeliveries }: { initialOrder
   )
 }
 
-function OrderCard({ order, onAdvance, onCancel }: { order: Order; onAdvance: (o: Order) => void; onCancel: (o: Order, reason: string) => void }) {
+function OrderCard({ order, onAdvance, onConfirmManualPayment, onCancel }: { order: Order; onAdvance: (o: Order) => void; onConfirmManualPayment: (o: Order) => void; onCancel: (o: Order, reason: string) => void }) {
   const [reason, setReason] = useState('')
   const next = nextStatus(order)
+  const manualPaymentDue = isManualPickupPaymentDue(order)
   const Icon = TYPE_ICON[order.type]
 
   return (
@@ -187,6 +214,7 @@ function OrderCard({ order, onAdvance, onCancel }: { order: Order; onAdvance: (o
           <li key={idx}>
             <strong>{i.quantity}×</strong> {i.productName}
             {i.flavorName && <span className="text-muted-foreground"> · {i.flavorName}</span>}
+            {i.saladIncluded && <span className="text-muted-foreground"> · com salada</span>}
             {i.comboSelections?.map((s) => <span key={s} className="block pl-5 text-xs text-muted-foreground">{s}</span>)}
             {i.notes && <span className="block pl-5 text-xs font-medium text-amber-700">Obs.: {i.notes}</span>}
           </li>
@@ -198,12 +226,17 @@ function OrderCard({ order, onAdvance, onCancel }: { order: Order; onAdvance: (o
         <span className="font-semibold tabular-nums">{formatBRL(order.totalCents)}</span>
       </div>
       <div className="flex gap-2">
-        {next && (
+        {manualPaymentDue && (
+          <Button size="sm" className="flex-1" onClick={() => onConfirmManualPayment(order)}>
+            <Check aria-hidden="true" /> Pago
+          </Button>
+        )}
+        {next && !manualPaymentDue && (
           <Button size="sm" className="flex-1" onClick={() => onAdvance(order)}>
             {ORDER_STATUS_LABEL[next]} <ArrowRight aria-hidden="true" />
           </Button>
         )}
-        <ConfirmAction
+        {order.status !== 'concluido' && <ConfirmAction
           trigger={<Button size="icon-sm" variant="outline" aria-label={`Cancelar pedido ${order.number}`}><X aria-hidden="true" /></Button>}
           title={`Cancelar pedido #${order.number}?`}
           confirmLabel="Cancelar pedido"
@@ -220,7 +253,7 @@ function OrderCard({ order, onAdvance, onCancel }: { order: Order; onAdvance: (o
               </label>
             </span>
           }
-        />
+        />}
       </div>
     </article>
   )

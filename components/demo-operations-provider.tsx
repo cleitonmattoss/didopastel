@@ -1,12 +1,15 @@
 'use client'
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
-import type { Delivery, Order, OrderStatus, PaymentStatus } from '@/lib/types'
+import type { Delivery, Order, OrderStatus, PaymentStatus, TableSession } from '@/lib/types'
 
 type DemoOperationsContextValue = {
   orders: Order[] | null
   deliveries: Delivery[] | null
+  tables: TableSession[] | null
   initialize: (orders: Order[], deliveries: Delivery[]) => void
+  initializeTables: (tables: TableSession[]) => void
+  updateTables: (update: (current: TableSession[]) => TableSession[]) => void
   updateOrders: (update: (current: Order[]) => Order[]) => void
   updateDeliveries: (update: (current: Delivery[]) => Delivery[]) => void
   upsertOrder: (order: Order) => void
@@ -25,10 +28,19 @@ function mergeByKey<T>(base: T[], updates: T[], key: (item: T) => string) {
 export function DemoOperationsProvider({ children }: { children: React.ReactNode }) {
   const [orders, setOrders] = useState<Order[] | null>(null)
   const [deliveries, setDeliveries] = useState<Delivery[] | null>(null)
+  const [tables, setTables] = useState<TableSession[] | null>(null)
 
   const initialize = useCallback((initialOrders: Order[], initialDeliveries: Delivery[]) => {
     setOrders((current) => current ? mergeByKey(initialOrders, current, (order) => order.number) : initialOrders)
     setDeliveries((current) => current ? mergeByKey(initialDeliveries, current, (delivery) => delivery.id) : initialDeliveries)
+  }, [])
+
+  const initializeTables = useCallback((initialTables: TableSession[]) => {
+    setTables((current) => current ?? initialTables)
+  }, [])
+
+  const updateTables = useCallback((update: (current: TableSession[]) => TableSession[]) => {
+    setTables((current) => current ? update(current) : current)
   }, [])
 
   const updateOrders = useCallback((update: (current: Order[]) => Order[]) => {
@@ -55,13 +67,16 @@ export function DemoOperationsProvider({ children }: { children: React.ReactNode
   const value = useMemo(() => ({
     orders,
     deliveries,
+    tables,
     initialize,
+    initializeTables,
+    updateTables,
     updateOrders,
     updateDeliveries,
     upsertOrder,
     upsertDelivery,
     orderStatus,
-  }), [orders, deliveries, initialize, updateOrders, updateDeliveries, upsertOrder, upsertDelivery, orderStatus])
+  }), [orders, deliveries, tables, initialize, initializeTables, updateTables, updateOrders, updateDeliveries, upsertOrder, upsertDelivery, orderStatus])
 
   return <DemoOperationsContext.Provider value={value}>{children}</DemoOperationsContext.Provider>
 }
